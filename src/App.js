@@ -1,25 +1,63 @@
-import logo from './logo.svg';
-import './App.css';
+import Account from './components/Account'
+import React, { useState } from 'react';
+import LoginForm from './components/LoginForm';
 
-function App() {
+const App = () => {
+  const baseUrl = ''; //url grpcClient
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState({});
+  const [message, setMessage] = useState('');
+
+  const handleLogin = (phone, pass) => {
+    const authData = {
+      phone : phone,
+      pass : pass,
+    };
+    getAccounts(authData);
+  };
+
+  const getAccounts = async(authData) => {
+    try{
+      const response = await fetch(baseUrl + '/accounts?phone=' + authData.phone + '&pass=' + authData.pass,{
+        method: 'GET'
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    console.log(data);
+    if (data.id !== 0)
+    {
+      await setUser(data);
+      await setIsLoggedIn(true);
+    }
+    else
+    {
+      setMessage('Пользователь не найден!')
+    }
+    
+    } catch (err)
+    {
+      console.error('Error:', err);
+    }
+    
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      
+      {isLoggedIn ? (
+        <Account user = {user} />
+      ) : (
+        <>
+        <LoginForm onLogin={handleLogin}/>
+        <p>{message}</p>
+        </>
+      )}
     </div>
   );
-}
+};
+
 
 export default App;
